@@ -1,0 +1,6 @@
+# ignore development files
+
+TODO.md
+\blend
+\pdn
+*.7z
