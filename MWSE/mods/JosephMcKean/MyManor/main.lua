@@ -32,6 +32,51 @@ function MyManor.transferOwnership(cell)
 end
 
 ---@param cell tes3cell
+function MyManor.tidyUp(cell)
+	for ref in cell:iterateReferences() do
+		if ref.baseObject.id:lower() == "active_de_r_bed_01" then
+			ref.position = tes3vector3.new(-280.986, 248.210, 803.742)
+			ref.orientation = tes3vector3.new(0, 0, math.rad(270))
+		elseif ref.baseObject.id:lower() == "furn_de_r_chair_03" then
+			if ref.position.z > 700 then -- there are multiple chairs
+				ref.position = tes3vector3.new(-162.458, 317.430, 817.039)
+				ref.orientation = tes3vector3.new(0, 0, 0)
+			end
+		elseif ref.baseObject.id:lower() == "furn_de_r_wallscreen_01" then
+			if ref.position.z > 700 then -- there are multiple chairs
+				ref.position = tes3vector3.new(-8.553, 173.233, 855.204)
+				ref.orientation = tes3vector3.new(0, 0, math.rad(180))
+			end
+		elseif ref.baseObject.id:lower() == "key_ralen_hlaalo" then
+			ref:disable()
+			ref:delete()
+		elseif ref.baseObject.id:lower() == "light_de_paper_lantern_off" then
+			ref:disable()
+			ref:delete()
+			tes3.createReference({ object = "light_de_paper_lantern_01", cell = cell, position = tes3vector3.new(-264.304, 66.302, 955.784), orientation = tes3vector3.new(0, 0, math.rad(40)) })
+		elseif ref.baseObject.id:lower() == "misc_uni_pillow_01" then
+			if ref.position.z > 700 then -- there are two pillows
+				ref.position = tes3vector3.new(-281.772, 312.087, 828.966)
+				ref.orientation = tes3vector3.new(0, 0, math.rad(270))
+			end
+		end
+	end
+end
+
+---@param cell tes3cell
+function MyManor.moveOldFurnitureExterior(cell, offset)
+	---@param position tes3vector3
+	local function isInBox(position, x1, x2, y1, y2, z1, z2)
+		if position.x < x1 or position.x > x2 then return false end
+		if position.y < y1 or position.y > y2 then return false end
+		if position.z < z1 or position.z > z2 then return false end
+		return true
+	end
+	for ref in cell:iterateReferences() do if isInBox(ref.position, -24280, -24010, -11390, -11140, 1300, 1340) then ref.position = ref.position + tes3vector3.new(0, 0, offset) end end
+	tes3.player.data.MyManor.oldFurnitureExteriorMoved = true
+end
+
+---@param cell tes3cell
 function MyManor.moveOldFurniture(cell, offset)
 	---@param object tes3object
 	local function isBlacklisted(object)
@@ -45,11 +90,7 @@ function MyManor.moveOldFurniture(cell, offset)
 		if id:match("^ab_in_hla") then return true end -- ab_in_hlaroomfloor
 		return false
 	end
-	for ref in cell:iterateReferences() do
-		if not isBlacklisted(ref.baseObject) then
-			ref.position = ref.position + tes3vector3.new(offset, 0, 0)
-		end
-	end
+	for ref in cell:iterateReferences() do if not isBlacklisted(ref.baseObject) then ref.position = ref.position + tes3vector3.new(offset, 0, 0) end end
 	tes3.player.data.MyManor.oldFurnitureMoved = true
 end
 
@@ -58,17 +99,21 @@ local function cellChanged(e)
 	local journalIndex = tes3.getJournalIndex({ id = "jsmk_mm" })
 	if journalIndex < 20 then return end
 	local cellName = e.cell.editorName
-	if cellName == "Balmora (-3, -2)" and not tes3.player.data.MyManor.doorLocksReplaced then
-		MyManor.replaceDoorLocks(e.cell)
+	if cellName == "Balmora (-3, -2)" and not tes3.player.data.MyManor.doorLocksReplaced then MyManor.replaceDoorLocks(e.cell) end
+	if cellName == "Balmora, Hlaalo Manor" and not tes3.player.data.MyManor.ownershipTransferred then
 		MyManor.deleteRalenHlaalo()
+		MyManor.transferOwnership(e.cell)
+		MyManor.tidyUp(e.cell)
 	end
-	if cellName == "Balmora, Hlaalo Manor" and not tes3.player.data.MyManor.ownershipTransferred then MyManor.transferOwnership(e.cell) end
 	if journalIndex < 30 then return end
+	if cellName == "Balmora (-3, -2)" and not tes3.player.data.MyManor.oldFurnitureExteriorMoved then MyManor.moveOldFurnitureExterior(e.cell, -1536) end
 	if cellName == "Balmora, Hlaalo Manor" and not tes3.player.data.MyManor.oldFurnitureMoved then MyManor.moveOldFurniture(e.cell, 1536) end
 end
 
 event.register("initialized", function()
-	event.register("loaded", function() tes3.player.data.MyManor = tes3.player.data.MyManor or { doorLocksReplaced = false, ownershipTransferred = false, oldFurnitureMoved = false } end)
+	event.register("loaded", function()
+		tes3.player.data.MyManor = tes3.player.data.MyManor or { doorLocksReplaced = false, ownershipTransferred = false, oldFurnitureMoved = false, oldFurnitureExteriorMoved = false }
+	end)
 	event.register("cellChanged", cellChanged)
 	event.register("UIEXP:sandboxConsole", function(e) e.sandbox.MyManor = MyManor end)
 end)
