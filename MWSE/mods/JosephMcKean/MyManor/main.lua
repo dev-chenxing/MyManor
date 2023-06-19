@@ -63,34 +63,46 @@ function MyManor.tidyUp(cell)
 	end
 end
 
+---@param object tes3object
+local function isWhitelisted(object)
+	if object.objectType == tes3.objectType.light then return false end -- dark_64 is a location marker for some reason
+	if object.isLocationMarker then return true end -- DoorMarker
+	if object.objectType == tes3.objectType.door then return true end -- in_h_trapdoor_01
+	local id = object.id:lower()
+	if id:match("^in_hlaalu") then return true end -- in_hlaalu_hall_end
+	if id:match("^t_de_sethla") then return true end -- t_de_sethla_x_win_01
+	if id:match("^ex_hlaalu") then return true end -- ex_hlaalu_win_01
+	if id:match("^ab_in_hla") then return true end -- ab_in_hlaroomfloor
+	return false
+end
+
 ---@param cell tes3cell
 function MyManor.moveOldFurnitureExterior(cell, offset)
 	---@param position tes3vector3
+	---@param x1 number
+	---@param x2 number
+	---@param y1 number
+	---@param y2 number
+	---@param z1 number
+	---@param z2 number
+	---@return boolean
 	local function isInBox(position, x1, x2, y1, y2, z1, z2)
 		if position.x < x1 or position.x > x2 then return false end
 		if position.y < y1 or position.y > y2 then return false end
 		if position.z < z1 or position.z > z2 then return false end
 		return true
 	end
-	for ref in cell:iterateReferences() do if isInBox(ref.position, -24280, -24010, -11390, -11140, 1300, 1340) then ref.position = ref.position + tes3vector3.new(0, 0, offset) end end
+	for ref in cell:iterateReferences() do
+		if ref.sourceMod and ref.sourceMod:lower() == "beautiful cities of morrowind.esp" then
+			if isInBox(ref.position, -24280, -24010, -11390, -11140, 1300, 1340) then if not isWhitelisted(ref.baseObject) then ref.position = ref.position + tes3vector3.new(0, 0, offset) end end
+		end
+	end
 	tes3.player.data.MyManor.oldFurnitureExteriorMoved = true
 end
 
 ---@param cell tes3cell
 function MyManor.moveOldFurniture(cell, offset)
-	---@param object tes3object
-	local function isBlacklisted(object)
-		if object.objectType == tes3.objectType.light then return false end -- dark_64 is a location marker for some reason
-		if object.isLocationMarker then return true end -- DoorMarker
-		if object.objectType == tes3.objectType.door then return true end -- in_h_trapdoor_01
-		local id = object.id:lower()
-		if id:match("^in_hlaalu") then return true end -- in_hlaalu_hall_end
-		if id:match("^t_de_sethla") then return true end -- t_de_sethla_x_win_01
-		if id:match("^ex_hlaalu") then return true end -- ex_hlaalu_win_01
-		if id:match("^ab_in_hla") then return true end -- ab_in_hlaroomfloor
-		return false
-	end
-	for ref in cell:iterateReferences() do if not isBlacklisted(ref.baseObject) then ref.position = ref.position + tes3vector3.new(offset, 0, 0) end end
+	for ref in cell:iterateReferences() do if not isWhitelisted(ref.baseObject) then ref.position = ref.position + tes3vector3.new(offset, 0, 0) end end
 	tes3.player.data.MyManor.oldFurnitureMoved = true
 end
 
@@ -99,7 +111,7 @@ local function cellChanged(e)
 	local journalIndex = tes3.getJournalIndex({ id = "jsmk_mm" })
 	if journalIndex < 20 then return end
 	local cellName = e.cell.editorName
-	if cellName == "Balmora (-3, -2)" and not tes3.player.data.MyManor.doorLocksReplaced then MyManor.replaceDoorLocks(e.cell) end
+	if cellName == "Balmora (-3, -2)" then MyManor.replaceDoorLocks(e.cell) end
 	if cellName == "Balmora, Hlaalo Manor" and not tes3.player.data.MyManor.ownershipTransferred then
 		MyManor.deleteRalenHlaalo()
 		MyManor.transferOwnership(e.cell)
@@ -112,9 +124,11 @@ end
 
 event.register("initialized", function()
 	event.register("loaded", function()
-		tes3.player.data.MyManor = tes3.player.data.MyManor or { doorLocksReplaced = false, ownershipTransferred = false, oldFurnitureMoved = false, oldFurnitureExteriorMoved = false }
+		tes3.player.data.MyManor = tes3.player.data.MyManor or
+		                           { doorLocksReplaced = false, ownershipTransferred = false, oldFurnitureMoved = false, oldFurnitureExteriorMoved = false, displayName = "Balmora, Hlaalo Manor" }
 	end)
 	event.register("cellChanged", cellChanged)
+	-- MyManor.planner = require("JosephMcKean.MyManor.planner")
 	event.register("UIEXP:sandboxConsole", function(e) e.sandbox.MyManor = MyManor end)
 end)
 
