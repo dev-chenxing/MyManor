@@ -27,7 +27,12 @@ end
 
 ---@param cell tes3cell
 function MyManor.transferOwnership(cell)
-	for ref in cell:iterateReferences() do if tes3.getOwner({ reference = ref }) then tes3.setOwner({ reference = ref, remove = true }) end end
+	for ref in cell:iterateReferences() do
+		if tes3.getOwner({ reference = ref }) then
+			tes3.setOwner({ reference = ref, remove = true })
+			ref.modified = true
+		end
+	end
 	tes3.player.data.MyManor.ownershipTransferred = true
 end
 
