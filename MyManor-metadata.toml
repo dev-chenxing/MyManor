@@ -1,14 +1,11 @@
 [package]
 name = "MyManor.esp"
 authors = ["JosephMcKean"]
-version = "1.0.0"
+version = "1.2.1"
 
 [dependencies]
 assets = [
-    "Icons/jsmk/fc/",
-    "Meshes/jsmk/fc/",
     "MWSE/mods/JosephMcKean/MyManor",
-    "Textures/jsmk/fc",
 ]
 
 [dependencies.mwse]
