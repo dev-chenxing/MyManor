@@ -68,6 +68,12 @@ function MyManor.tidyUp(cell)
 	end
 end
 
+---@param cell tes3cell
+function MyManor.canRest(cell)
+	cell.restingIsIllegal = false
+	tes3.player.data.MyManor.cellCanRest = true
+end
+
 ---@param object tes3object
 local function isWhitelisted(object)
 	if object.objectType == tes3.objectType.light then return false end -- dark_64 is a location marker for some reason
@@ -115,14 +121,19 @@ end
 local function cellChanged(e)
 	local journalIndex = tes3.getJournalIndex({ id = "jsmk_mm" })
 	if journalIndex < 20 then return end
+	-- bought the manor
 	local cellName = e.cell.editorName
 	if cellName == "Balmora (-3, -2)" then MyManor.replaceDoorLocks(e.cell) end
-	if cellName == "Balmora, Hlaalo Manor" and not tes3.player.data.MyManor.ownershipTransferred then
-		MyManor.deleteRalenHlaalo()
-		MyManor.transferOwnership(e.cell)
-		MyManor.tidyUp(e.cell)
+	if cellName == "Balmora, Hlaalo Manor" then
+		if not tes3.player.data.MyManor.ownershipTransferred then
+			MyManor.deleteRalenHlaalo()
+			MyManor.transferOwnership(e.cell)
+			MyManor.tidyUp(e.cell)
+		end
+		if not tes3.player.data.MyManor.cellCanRest then MyManor.canRest(e.cell) end
 	end
 	if journalIndex < 30 then return end
+	-- empty the manor
 	if cellName == "Balmora (-3, -2)" and not tes3.player.data.MyManor.oldFurnitureExteriorMoved then MyManor.moveOldFurnitureExterior(e.cell, -1536) end
 	if cellName == "Balmora, Hlaalo Manor" and not tes3.player.data.MyManor.oldFurnitureMoved then MyManor.moveOldFurniture(e.cell, 1536) end
 end
@@ -130,7 +141,14 @@ end
 event.register("initialized", function()
 	event.register("loaded", function()
 		tes3.player.data.MyManor = tes3.player.data.MyManor or
-		                           { doorLocksReplaced = false, ownershipTransferred = false, oldFurnitureMoved = false, oldFurnitureExteriorMoved = false, displayName = "Balmora, Hlaalo Manor" }
+		                           {
+			doorLocksReplaced = false,
+			ownershipTransferred = false,
+			oldFurnitureMoved = false,
+			oldFurnitureExteriorMoved = false,
+			cellCanRest = false,
+			displayName = "Balmora, Hlaalo Manor",
+		}
 	end)
 	event.register("cellChanged", cellChanged)
 	-- MyManor.planner = require("JosephMcKean.MyManor.planner")
