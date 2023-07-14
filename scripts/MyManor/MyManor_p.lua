@@ -4,7 +4,7 @@ local I = require("openmw.interfaces")
 if types.Player.quests == nil then
     I.Settings.registerPage {
         key = 'SettingsMyManor',
-        l10n = '',
+        l10n = 'MyManor',
         name = 'MyManor',
         description = 'This version of OpenMW has no lua quest support. Update to the latest 0.49 or development release/build.',
     }
