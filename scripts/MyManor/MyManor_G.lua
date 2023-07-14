@@ -9,7 +9,8 @@ local doorLocksReplaced = false
 local ownershipTransferred = false
 local oldFurnitureExteriorMoved = false
 local oldFurnitureMoved = false
-
+local useOffsetExt = -1536
+local useOffsetInt = 2536
 local function onSave()
 	return {
 		doorLocksReplaced = doorLocksReplaced,
@@ -17,6 +18,14 @@ local function onSave()
 		oldFurnitureExteriorMoved = oldFurnitureExteriorMoved,
 		oldFurnitureMoved = oldFurnitureMoved
 	}
+end
+local function drawLavaSquares(cell,basePos, countx, county)
+	for x = 1, countx, 1 do
+		for y = 1, county, 1 do
+			local position = util.vector3(basePos.x + ((x - 1) * 512),basePos.y - ((y - 1) * 512),basePos.z)
+			world.createObject("in_lava_blacksquare"):teleport(cell,position)
+		end
+	end
 end
 local function onLoad(data)
 	if not data then
@@ -135,9 +144,9 @@ function MyManor.moveOldFurniture(cell, offset)
 	oldFurnitureMoved = true
 end
 
-local function journalUpdated(journalIndex)--called by the player script, only for the quest id MManor_journalUpdated 
+local function journalUpdated(journalIndex)        --called by the player script, only for the quest id MManor_journalUpdated
 	if journalIndex < 20 then return end
-	local outsideCell = world.getExteriorCell(-3, -2)--The cell outside of the manor
+	local outsideCell = world.getExteriorCell(-3, -2) --The cell outside of the manor
 	local insideCell = world.getCellByName("Balmora, Hlaalo Manor")
 	MyManor.replaceDoorLocks(outsideCell)
 	if not ownershipTransferred then
@@ -148,15 +157,17 @@ local function journalUpdated(journalIndex)--called by the player script, only f
 	if journalIndex < 30 then return end
 	if not oldFurnitureExteriorMoved then
 		MyManor.moveOldFurnitureExterior(outsideCell,
-			-1536)
+			useOffsetExt)
 	end
-	if not oldFurnitureMoved then MyManor.moveOldFurniture(insideCell, 1536) end
+	if not oldFurnitureMoved then MyManor.moveOldFurniture(insideCell, useOffsetInt) drawLavaSquares(insideCell,util.vector3(1893.33, 601.247, 1389.21),5,5)
+	end
 end
 return {
 	interfaceName  = "MyManor",
 	interface      = {
 		version = 1,
-		journalUpdated = journalUpdated
+		journalUpdated = journalUpdated,
+		drawLavaSquares = drawLavaSquares,
 
 	},
 	engineHandlers = {
