@@ -10,7 +10,7 @@ local ownershipTransferred = false
 local oldFurnitureExteriorMoved = false
 local oldFurnitureMoved = false
 local useOffsetExt = -1536
-local useOffsetInt = 2536
+local useOffsetInt = 2036
 local function onSave()
 	return {
 		doorLocksReplaced = doorLocksReplaced,
@@ -19,11 +19,11 @@ local function onSave()
 		oldFurnitureMoved = oldFurnitureMoved
 	}
 end
-local function drawLavaSquares(cell,basePos, countx, county)
+local function drawLavaSquares(cell, basePos, countx, county)
 	for x = 1, countx, 1 do
 		for y = 1, county, 1 do
-			local position = util.vector3(basePos.x + ((x - 1) * 512),basePos.y - ((y - 1) * 512),basePos.z)
-			world.createObject("in_lava_blacksquare"):teleport(cell,position)
+			local position = util.vector3(basePos.x + ((x - 1) * 512), basePos.y - ((y - 1) * 512), basePos.z)
+			world.createObject("in_lava_blacksquare"):teleport(cell, position)
 		end
 	end
 end
@@ -159,7 +159,9 @@ local function journalUpdated(journalIndex)        --called by the player script
 		MyManor.moveOldFurnitureExterior(outsideCell,
 			useOffsetExt)
 	end
-	if not oldFurnitureMoved then MyManor.moveOldFurniture(insideCell, useOffsetInt) drawLavaSquares(insideCell,util.vector3(1893.33, 601.247, 1389.21),5,5)
+	if not oldFurnitureMoved then
+		MyManor.moveOldFurniture(insideCell, useOffsetInt)
+		drawLavaSquares(insideCell, util.vector3(1400.33, 601.247, 1389.21), 5, 5)
 	end
 end
 return {
