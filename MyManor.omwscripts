@@ -1,0 +1,2 @@
+GLOBAL:scripts/MyManor/MyManor_G.lua
+PLAYER:scripts/MyManor/mymanor_p.lua
