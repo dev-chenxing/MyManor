@@ -120,6 +120,7 @@ end
 ---@param e cellChangedEventData
 local function cellChanged(e)
 	local journalIndex = tes3.getJournalIndex({ id = "jsmk_mm" })
+	if not journalIndex then return end
 	if journalIndex < 20 then return end
 	-- bought the manor
 	local cellName = e.cell.editorName
