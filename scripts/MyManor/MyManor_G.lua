@@ -63,12 +63,13 @@ function MyManor.deleteRalenHlaalo()
 end
 
 function MyManor.transferOwnership(cell)
+	
 	for i, ref in ipairs(cell:getAll()) do
-		if ref.ownerRecordId then
-			ref.ownerRecordId = nil
+		if ref.owner.recordId then
+			ref.owner.recordId = nil
 		end
-		if ref.ownerFactionId then
-			ref.ownerFactionId = nil
+		if ref.owner.factionId then
+			ref.owner.factionId = nil
 		end
 	end
 	ownershipTransferred = true
@@ -164,6 +165,11 @@ local function journalUpdated(journalIndex)        --called by the player script
 		drawLavaSquares(insideCell, util.vector3(1400.33, 601.247, 1389.21), 5, 5)
 	end
 end
+local function reRunOwnership()
+	if not ownershipTransferred then return end
+	local insideCell = world.getCellByName("Balmora, Hlaalo Manor")
+	MyManor.transferOwnership(insideCell)
+end
 return {
 	interfaceName  = "MyManor",
 	interface      = {
@@ -177,6 +183,7 @@ return {
 		onLoad = onLoad,
 	},
 	eventHandlers  = {
-		MManor_journalUpdated = journalUpdated
+		MManor_journalUpdated = journalUpdated,
+		MManor_reRunOwnership = reRunOwnership,
 	}
 }

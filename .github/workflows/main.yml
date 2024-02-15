@@ -1,0 +1,38 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install zip
+        run: sudo apt-get update -y && sudo apt-get install zip -y
+      - name: Create Zip File
+        run: |
+          ZIP_FILE=${GITHUB_REPOSITORY##*/}-${GITHUB_REF##*/}.zip
+          find . -type f ! -path '*/.*' ! -path './dev/*' | zip $ZIP_FILE -@
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: project-zip
+          path: ${{ github.workspace }}/${{ github.repository }}-${{ github.ref_name }}.zip
+          retention-days: 7
+
+  release:
+    needs: package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: project-zip
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ${{ github.workspace }}/${{ github.repository }}-${{ github.ref_name }}.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
