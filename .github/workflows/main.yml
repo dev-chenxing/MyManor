@@ -17,23 +17,32 @@ jobs:
           ZIP_FILE="${GITHUB_REPOSITORY##*/}-${GITHUB_REF_NAME}.zip"
           echo "ZIP_FILE=${ZIP_FILE}" >> $GITHUB_ENV
           find . -type f ! -path '*/.*' ! -path './dev/*' | zip $ZIP_FILE -@
+        id: zip_creation
+      
+      - name: Set Zip Path Output
+        id: zip_output
+        run: echo "::set-output name=zip-path::${{ env.ZIP_FILE }}"
+      
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         with:
           name: project-zip
           path: ${{ env.ZIP_FILE }}
-          retention-days: 7
 
   release:
     needs: package
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/checkout@v3
+      
+      - name: Download Artifact
+        uses: actions/download-artifact@v3
         with:
           name: project-zip
+      
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: ${{ github.workspace }}/${{ github.repository }}-${{ github.ref_name }}.zip
+          files: ./${{ needs.package.outputs.zip-path }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
