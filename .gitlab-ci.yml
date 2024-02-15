@@ -7,7 +7,7 @@ make_zip:
   before_script:
     - apt-get update -y && apt-get install zip -y  # Install zip
   script:
-    - find . -type f ! -path '*/.*' ! -path './dev/*' | zip "${CI_PROJECT_PATH_SLUG}.zip" -@
+    - find . -type f ! -path '*/.*' ! -path './dev/*' ! -path './*.bat' | zip "${CI_PROJECT_PATH_SLUG}.zip" -@
   artifacts:
     paths:
       -  "${CI_PROJECT_PATH_SLUG}.zip"
