@@ -1,0 +1,24 @@
+stages:
+  - package
+  - release
+make_zip:
+  stage: package
+  image: ubuntu:latest  # Use an image that has apt package manager
+  before_script:
+    - apt-get update -y && apt-get install zip -y  # Install zip
+  script:
+    - find . -type f ! -path '*/.*' ! -path './dev/*' | zip "${CI_PROJECT_PATH_SLUG}.zip" -@
+  artifacts:
+    paths:
+      -  "${CI_PROJECT_PATH_SLUG}.zip"
+    expire_in: 1 week
+create_release:
+  stage: release
+  script:
+    - |
+      export ZIP_FILE="${CI_PROJECT_PATH_SLUG}.zip"
+      curl --header "PRIVATE-TOKEN: $CI_JOB_TOKEN" --data "tag_name=v1.0" --data "description=Release description" --data "assets.link=$ZIP_FILE" https://gitlab.com/api/v4/projects/$CI_PROJECT_ID/releases
+  only:
+    - tags # Trigger this job only on tag creation
+  dependencies:
+    - make_zip # Ensure that the make_zip job is completed before creating the release
