@@ -110,7 +110,18 @@ function MyManor.moveOldFurnitureExterior(cell, offset)
 	end
 	tes3.player.data.MyManor.oldFurnitureExteriorMoved = true
 end
-
+local function drawLavaSquares(cell, basePos, countx, county)
+	for x = 1, countx, 1 do
+		for y = 1, county, 1 do
+		local position = tes3vector3.new(basePos.x + ((x - 1) * 512), basePos.y - ((y - 1) * 512), basePos.z)
+		tes3.createReference{
+		object = "in_lava_blacksquare",
+		position = position,
+		cell = cell
+		}
+		end
+	end
+end
 ---@param cell tes3cell
 function MyManor.moveOldFurniture(cell, offset)
 	for ref in cell:iterateReferences() do if not isWhitelisted(ref.baseObject) then ref.position = ref.position + tes3vector3.new(offset, 0, 0) end end
@@ -136,7 +147,10 @@ local function cellChanged(e)
 	if journalIndex < 30 then return end
 	-- empty the manor
 	if cellName == "Balmora (-3, -2)" and not tes3.player.data.MyManor.oldFurnitureExteriorMoved then MyManor.moveOldFurnitureExterior(e.cell, -1536) end
-	if cellName == "Balmora, Hlaalo Manor" and not tes3.player.data.MyManor.oldFurnitureMoved then MyManor.moveOldFurniture(e.cell, 1536) end
+	if cellName == "Balmora, Hlaalo Manor" and not tes3.player.data.MyManor.oldFurnitureMoved then 
+		MyManor.moveOldFurniture(e.cell, 2036) 
+		drawLavaSquares(e.cell, tes3vector3.new(1400.33, 601.247, 1389.21), 5, 5)
+	end
 end
 
 event.register("initialized", function()
