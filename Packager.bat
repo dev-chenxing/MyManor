@@ -1,1 +1,1 @@
-7z a "MyManor.7z" Icons Docs Meshes MWSE Sound Textures Scripts "MyManor-metadata.toml" "MyManor.esp"
+7z a "MyManor.7z" Icons Docs Meshes MWSE Sound Textures Scripts "MyManor-metadata.toml" "MyManor.esp" "MyManor.omwscripts"
